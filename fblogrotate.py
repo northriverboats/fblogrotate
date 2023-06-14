@@ -24,11 +24,11 @@ def get_dirs(path):
         if os.path.isdir(os.path.join(path, file)):
             yield file
 
-# build a liste of dates like '2023.05.28' to keep files from
-# based on the last day of the month before inventory, plus the 12 days after
-# that for 
-# 2 inventory periods plus the last 12 days
 def build_dates(today,days_to_keep):
+    """ build a liste of dates like '2023.05.28' to keep files from
+        based on the last day of the month before inventory, plus 12 more days
+        for 2 inventory periods plus the last 12 days
+    """
     period = int((today.month  -1)/3)
     base = (
         (-1, 6, 30),
@@ -55,23 +55,48 @@ def build_dates(today,days_to_keep):
 
     return all_dates
 
-def delete_folders(path, dates):
+
+def dry_run(path, dates):
+    """ perform a dry run """
+    print("Folders to keep ============================")
     for dir in get_dirs(path):
-        if not dir[:10] in dates:
-            # shutil.rmtree( os.path.join(path, dir) )
+        if dir[:10] in dates:
             print( os.path.join(path, dir) )
 
+    print()
+
+    print("Folders to delete ============================")
+    for dir in get_dirs(path):
+        if not dir[:10] in dates:
+            print( os.path.join(path, dir) )
+
+def delete_folders(path, dates):
+    """ delete folders and contents"""
+    for dir in get_dirs(path):
+        if not dir[:10] in dates:
+            shutil.rmtree( os.path.join(path, dir) )
 
 @click.command()
-def main():
-    """ main routine """
+@click.option('--force', '-f', is_flag=True,
+              help="force files to be deleted")
+def main(force):
+    """
+    Fish Bowl Log Rotate Utility
+
+    If run with no parameters will print a list of files to keep and files
+    to be deleted.
+
+    To actually delete files this utility must be run with the --force option
+    """
     # load environmental variables
     load_dotenv(dotenv_path=resource_path(".env"))
     path = os.environ.get('FOLDER', '/tmp')
     interval = int(os.environ.get('INTERVAL', 15))
     dates = sorted(build_dates( date.today(), interval))
-    delete_folders(path, dates)
+    if force:
+        delete_folders(path, dates)
+    else:
+        dry_run(path, dates)
 
 if __name__ == "__main__":
    main()
-
