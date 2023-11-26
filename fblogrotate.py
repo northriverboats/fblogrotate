@@ -61,9 +61,9 @@ def dry_run(path, dates):
     print("Folders to keep ============================")
     for dir in get_dirs(path):
         if dir[:10] in dates:
-            print( os.path.join(path, dir) )
+            click.echo( os.path.join(path, dir) )
 
-    print()
+    click.echo()
 
     print("Folders to delete ============================")
     for dir in get_dirs(path):
@@ -74,7 +74,8 @@ def delete_folders(path, dates):
     """ delete folders and contents"""
     for dir in get_dirs(path):
         if not dir[:10] in dates:
-            shutil.rmtree( os.path.join(path, dir) )
+            # shutil.rmtree( os.path.join(path, dir) )
+            click.echo(os.path.join(path, dir))
 
 @click.command()
 @click.option('--force', '-f', is_flag=True,
